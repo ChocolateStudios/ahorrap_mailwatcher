@@ -148,7 +148,7 @@
 
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QLineEdit, QPushButton
 from PyQt5.QtCore import Qt
-from screens.auth.styles.styles import get_styles
+from screens.auth.styles.styles import get_screen_styles, get_main_button_styles, get_additional_buttons_styles
 
 class RegisterScreen(QFrame):
     def __init__(self):
@@ -156,7 +156,7 @@ class RegisterScreen(QFrame):
         self.initUI()
 
     def initUI(self):
-        self.setStyleSheet(get_styles())
+        self.setStyleSheet(get_screen_styles())
 
         layout = QVBoxLayout()
         layout.setSpacing(15)
@@ -187,32 +187,13 @@ class RegisterScreen(QFrame):
 
         # Botón de registro
         self.register_button = QPushButton("Registrarse")
-        self.register_button.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-            }
-            QPushButton:hover {
-                background-color: #45a049;
-            }
-        """)
+        self.register_button.setStyleSheet(get_main_button_styles())
         # self.register_button.clicked.connect(self.register)
         layout.addWidget(self.register_button)
 
         # Botones adicionales
         self.login_button = QPushButton("¿Ya tienes una cuenta? Inicia sesión")
-        self.login_button.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                color: #4CAF50;
-                font-weight: normal;
-                text-align: center;
-                padding: 5px 0;
-            }
-            QPushButton:hover {
-                text-decoration: underline;
-            }
-        """)
+        self.login_button.setStyleSheet(get_additional_buttons_styles())
         layout.addWidget(self.login_button)
 
         self.setLayout(layout)

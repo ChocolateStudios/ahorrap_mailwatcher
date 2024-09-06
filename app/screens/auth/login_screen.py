@@ -150,7 +150,7 @@
 
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QLineEdit, QPushButton
 from PyQt5.QtCore import Qt
-from screens.auth.styles.styles import get_styles
+from screens.auth.styles.styles import get_screen_styles, get_main_button_styles, get_additional_buttons_styles
 
 class LoginScreen(QFrame):
     def __init__(self):
@@ -158,7 +158,7 @@ class LoginScreen(QFrame):
         self.initUI()
 
     def initUI(self):
-        self.setStyleSheet(get_styles())
+        self.setStyleSheet(get_screen_styles())
 
         layout = QVBoxLayout()
         layout.setSpacing(15)
@@ -183,15 +183,7 @@ class LoginScreen(QFrame):
 
         # Botón de inicio de sesión
         self.login_button = QPushButton("Iniciar sesión")
-        self.login_button.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-            }
-            QPushButton:hover {
-                background-color: #45a049;
-            }
-        """)
+        self.login_button.setStyleSheet(get_main_button_styles())
         layout.addWidget(self.login_button)
 
         # Botones adicionales
@@ -201,18 +193,7 @@ class LoginScreen(QFrame):
         self.register_button = QPushButton("Registrarse")
         
         for button in [self.forgot_password_button, self.register_button]:
-            button.setStyleSheet("""
-                QPushButton {
-                    background-color: transparent;
-                    color: #4CAF50;
-                    font-weight: normal;
-                    text-align: left;
-                    padding: 5px 0;
-                }
-                QPushButton:hover {
-                    text-decoration: underline;
-                }
-            """)
+            button.setStyleSheet(get_additional_buttons_styles())
             additional_buttons_layout.addWidget(button)
         
         layout.addLayout(additional_buttons_layout)

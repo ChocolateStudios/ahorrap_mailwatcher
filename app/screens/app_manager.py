@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QStackedWidget, QMainWindow
 from screens.auth.login_screen import LoginScreen
-# from screens.recover_screen import RecoverScreen
+from screens.auth.recover_screen import RecoverScreen
 from screens.auth.register_screen import RegisterScreen
 from screens.main.home_screen import HomeScreen
 
@@ -14,12 +14,12 @@ class AppManager(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         self.login_screen = LoginScreen()
-        # self.recover_screen = RecoverScreen()
+        self.recover_screen = RecoverScreen()
         self.register_screen = RegisterScreen()
         self.home_screen = HomeScreen()
 
         self.central_widget.addWidget(self.login_screen)
-        # self.central_widget.addWidget(self.recover_screen)
+        self.central_widget.addWidget(self.recover_screen)
         self.central_widget.addWidget(self.register_screen)
         self.central_widget.addWidget(self.home_screen)
 
@@ -27,12 +27,12 @@ class AppManager(QMainWindow):
 
     def setup_connections(self):
         # Connect login screen buttons
-        # self.login_screen.forgot_password_button.clicked.connect(self.show_recover_screen)
+        self.login_screen.forgot_password_button.clicked.connect(self.show_recover_screen)
         self.login_screen.register_button.clicked.connect(self.show_register_screen)
         self.login_screen.login_button.clicked.connect(self.handle_login)
 
         # Connect recover screen buttons
-        # self.recover_screen.login_button.clicked.connect(self.show_login_screen)
+        self.recover_screen.login_button.clicked.connect(self.show_login_screen)
 
         # Connect register screen buttons
         self.register_screen.login_button.clicked.connect(self.show_login_screen)
