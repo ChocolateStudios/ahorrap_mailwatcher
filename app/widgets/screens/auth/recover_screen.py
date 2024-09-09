@@ -138,7 +138,7 @@
 
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 from PyQt5.QtCore import Qt
-from screens.auth.styles.styles import get_screen_styles, get_main_button_styles, get_additional_buttons_styles
+from .styles.styles import get_screen_styles, get_main_button_styles, get_additional_buttons_styles
 
 class RecoverScreen(QFrame):
     def __init__(self):

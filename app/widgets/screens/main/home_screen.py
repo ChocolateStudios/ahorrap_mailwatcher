@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QPushButton, QSpac
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from qtawesome import icon
-from screens.main.styles.styles import get_styles
+from .styles.styles import get_styles
 
 class HomeScreen(QFrame):
     def __init__(self):

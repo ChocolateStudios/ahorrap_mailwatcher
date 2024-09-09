@@ -1,8 +1,10 @@
-from PyQt5.QtWidgets import QStackedWidget, QMainWindow
-from screens.auth.login_screen import LoginScreen
-from screens.auth.recover_screen import RecoverScreen
-from screens.auth.register_screen import RegisterScreen
-from screens.main.home_screen import HomeScreen
+from PyQt5.QtWidgets import QStackedWidget, QMainWindow, QApplication
+from PyQt5.QtCore import Qt
+from .screens.auth.login_screen import LoginScreen
+from .screens.auth.recover_screen import RecoverScreen
+from .screens.auth.register_screen import RegisterScreen
+from .screens.main.home_screen import HomeScreen
+from .system_tray import SystemTray
 
 class AppManager(QMainWindow):
     def __init__(self):
@@ -24,6 +26,9 @@ class AppManager(QMainWindow):
         self.central_widget.addWidget(self.home_screen)
 
         self.setup_connections()
+
+        self.system_tray = SystemTray(self)
+        self.system_tray.show()
 
     def setup_connections(self):
         # Connect login screen buttons
@@ -65,3 +70,42 @@ class AppManager(QMainWindow):
         # Aquí iría la lógica para mostrar la pantalla de ajustes
         # Por ahora, simplemente imprimimos un mensaje
         print("Mostrando ajustes...")
+
+    def closeEvent(self, event):
+        event.ignore()
+        self.hide()
+        self.system_tray.show_message("AhorrApp\'e", "La aplicación sigue ejecutándose en segundo plano.")
+
+    def quit_application(self):
+        self.system_tray.hide()
+        self.close()
+        QApplication.quit()
+
+
+    def show_above_tray_icon(self):
+        screen = QApplication.primaryScreen()
+        screen_geometry = screen.availableGeometry()
+
+        tray_icon_rect = self.system_tray.geometry()
+        tray_icon_pos = tray_icon_rect.topLeft()
+        tray_icon_bottom = tray_icon_rect.bottom()
+        window_width = self.width()
+        window_height = self.height()
+
+        x_pos = tray_icon_pos.x()
+        y_pos = tray_icon_bottom - window_height
+
+        if y_pos < screen_geometry.top():
+            y_pos = screen_geometry.top() + 5
+
+        if x_pos + window_width > screen_geometry.width():
+            x_pos = screen_geometry.width() - window_width
+
+        if tray_icon_bottom + window_height > screen_geometry.bottom():
+            y_pos = screen_geometry.bottom() - window_height - 52
+
+        if tray_icon_pos.y() > screen_geometry.bottom() - 50:
+            y_pos = screen_geometry.bottom() - window_height - 52
+
+        self.move(x_pos, y_pos)
+        self.show()
