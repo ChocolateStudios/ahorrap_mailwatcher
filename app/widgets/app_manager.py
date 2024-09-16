@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QStackedWidget, QMainWindow, QApplication
 from PyQt5.QtCore import Qt
+
+from app.core._shared.services.local_storage_service import LocalStorageService
 from .screens.auth.login_screen import LoginScreen
 from .screens.auth.recover_screen import RecoverScreen
 from .screens.auth.register_screen import RegisterScreen
@@ -15,10 +17,12 @@ class AppManager(QMainWindow):
         self.central_widget = QStackedWidget()
         self.setCentralWidget(self.central_widget)
 
-        self.login_screen = LoginScreen()
-        self.recover_screen = RecoverScreen()
-        self.register_screen = RegisterScreen()
-        self.home_screen = HomeScreen()
+        self.local_storage = LocalStorageService("ChocolateStudios", "AhorrApp")
+
+        self.login_screen = LoginScreen(self)
+        self.recover_screen = RecoverScreen(self)
+        self.register_screen = RegisterScreen(self)
+        self.home_screen = HomeScreen(self)
 
         self.central_widget.addWidget(self.login_screen)
         self.central_widget.addWidget(self.recover_screen)
@@ -34,7 +38,7 @@ class AppManager(QMainWindow):
         # Connect login screen buttons
         self.login_screen.forgot_password_button.clicked.connect(self.show_recover_screen)
         self.login_screen.register_button.clicked.connect(self.show_register_screen)
-        self.login_screen.login_button.clicked.connect(self.handle_login)
+        # self.login_screen.login_button.clicked.connect(self.handle_login)
 
         # Connect recover screen buttons
         self.recover_screen.login_button.clicked.connect(self.show_login_screen)
@@ -42,8 +46,8 @@ class AppManager(QMainWindow):
         # Connect register screen buttons
         self.register_screen.login_button.clicked.connect(self.show_login_screen)
 
-        self.home_screen.logout_button.clicked.connect(self.handle_logout)
-        self.home_screen.settings_button.clicked.connect(self.show_settings)
+        # self.home_screen.logout_button.clicked.connect(self.handle_logout)
+        # self.home_screen.settings_button.clicked.connect(self.show_settings)
 
     def show_login_screen(self):
         self.central_widget.setCurrentWidget(self.login_screen)
@@ -57,19 +61,19 @@ class AppManager(QMainWindow):
     def show_home_screen(self):
         self.central_widget.setCurrentWidget(self.home_screen)
 
-    def handle_login(self):
-        # Aquí iría la lógica de autenticación
-        # Si la autenticación es exitosa, mostrar la pantalla principal
-        self.show_home_screen()
+    # def handle_login(self):
+    #     # Aquí iría la lógica de autenticación
+    #     # Si la autenticación es exitosa, mostrar la pantalla principal
+    #     self.show_home_screen()
 
-    def handle_logout(self):
-        # Aquí iría la lógica de cierre de sesión
-        self.show_login_screen()
+    # def handle_logout(self):
+    #     # Aquí iría la lógica de cierre de sesión
+    #     self.show_login_screen()
 
-    def show_settings(self):
-        # Aquí iría la lógica para mostrar la pantalla de ajustes
-        # Por ahora, simplemente imprimimos un mensaje
-        print("Mostrando ajustes...")
+    # def show_settings(self):
+    #     # Aquí iría la lógica para mostrar la pantalla de ajustes
+    #     # Por ahora, simplemente imprimimos un mensaje
+    #     print("Mostrando ajustes...")
 
     def closeEvent(self, event):
         event.ignore()
@@ -99,7 +103,7 @@ class AppManager(QMainWindow):
             y_pos = screen_geometry.top() + 5
 
         if x_pos + window_width > screen_geometry.width():
-            x_pos = screen_geometry.width() - window_width
+            x_pos = screen_geometry.width() - window_width - 10
 
         if tray_icon_bottom + window_height > screen_geometry.bottom():
             y_pos = screen_geometry.bottom() - window_height - 52

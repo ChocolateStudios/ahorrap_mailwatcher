@@ -141,9 +141,11 @@ from PyQt5.QtCore import Qt
 from .styles.styles import get_screen_styles, get_main_button_styles, get_additional_buttons_styles
 
 class RecoverScreen(QFrame):
-    def __init__(self):
+    def __init__(self, app_manager):
         super().__init__()
         self.initUI()
+
+        self.app_manager = app_manager
 
     def initUI(self):
         self.setStyleSheet(get_screen_styles())

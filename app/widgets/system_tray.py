@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QSystemTrayIcon, QMenu, QAction
 from PyQt5.QtGui import QIcon
-from assets.assets import app_icon
+from app.assets.assets import app_icon
 
 class SystemTray(QSystemTrayIcon):
     def __init__(self, app_manager):

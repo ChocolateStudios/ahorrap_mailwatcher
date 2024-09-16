@@ -11,3 +11,5 @@ def get_icon_path(relative_path):
 # RESOURCES
 
 app_icon = get_icon_path("./images/AhorrAppIcon.png")
+gear_icon = get_icon_path("./images/gear.png")
+logout_icon = get_icon_path("./images/logout.png")

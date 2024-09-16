@@ -1,60 +1,141 @@
-import requests
-from requests.exceptions import RequestException
-from typing import Dict, Any, Optional
-from configs import settings  # Asumiendo que tienes un módulo de configuración
+# from pydantic import BaseModel
+# import requests
+# from requests.exceptions import RequestException
+# from typing import Dict, Any, Optional, Union
+# from app.configs.settings import settings
+
+# class HTTPClient:
+#     def __init__(self):
+#         self.base_url = f'{settings.API_URL}/api/v1'
+#         self.session = requests.Session()
+#         self.session.headers.update({
+#             "Content-Type": "application/json",
+#             "Accept": "application/json"
+#         })
+
+#     def set_auth_token(self, token: str):
+#         self.session.headers["Authorization"] = f"Bearer {token}"
+
+#     def _handle_response(self, response: requests.Response) -> Dict[str, Any]:
+#         try:
+#             response.raise_for_status()
+#             return response.json()
+#         except RequestException as e:
+#             print(e)
+#             raise APIError(str(e), response.status_code)
+
+#     def _prepare_data(self, data: Union[Dict[str, Any], BaseModel]) -> Dict[str, Any]:
+#         if isinstance(data, BaseModel):
+#             return data.model_dump()
+#         return data
+
+        
+#     def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+#         url = f"{self.base_url}/{endpoint}"
+#         try:
+#             response = self.session.get(url, params=params)
+#             return self._handle_response(response)
+#         except RequestException as e:
+#             raise APIError(f"GET request failed: {str(e)}")
+        
+#     def post(self, endpoint: str, data: Union[Dict[str, Any], BaseModel]) -> Dict[str, Any]:
+#         url = f"{self.base_url}/{endpoint}"
+#         try:
+#             prepared_data = self._prepare_data(data)
+#             response = self.session.post(url, json=prepared_data)
+#             return self._handle_response(response)
+#         except RequestException as e:
+#             raise APIError(f"POST request failed: {str(e)}")
+
+#     def put(self, endpoint: str, data: Union[Dict[str, Any], BaseModel]) -> Dict[str, Any]:
+#         url = f"{self.base_url}/{endpoint}"
+#         try:
+#             prepared_data = self._prepare_data(data)
+#             response = self.session.put(url, json=prepared_data)
+#             return self._handle_response(response)
+#         except RequestException as e:
+#             raise APIError(f"PUT request failed: {str(e)}")
+
+#     def delete(self, endpoint: str) -> Dict[str, Any]:
+#         url = f"{self.base_url}/{endpoint}"
+#         try:
+#             response = self.session.delete(url)
+#             return self._handle_response(response)
+#         except RequestException as e:
+#             raise APIError(f"DELETE request failed: {str(e)}")
+        
+
+# class APIError(Exception):
+#     def __init__(self, message: str, status_code: Optional[int] = None):
+#         self.message = message
+#         self.status_code = status_code
+#         super().__init__(self.message)
+
+
+# http_client = HTTPClient()
+
+
+
+
+import aiohttp
+from aiohttp import ClientResponseError
+from pydantic import BaseModel
+from typing import Dict, Any, Optional, Union
+from app.configs.settings import settings
 
 class HTTPClient:
     def __init__(self):
-        self.base_url = settings.API_URL
-        # self.timeout = settings.API_TIMEOUT
-        self.session = requests.Session()
-        self.session.headers.update({
+        self.base_url = f'{settings.API_URL}/api/v1'
+        self.session = None
+        self.headers = {
             "Content-Type": "application/json",
             "Accept": "application/json"
-        })
+        }
+
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession(headers=self.headers)
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.session.close()
 
     def set_auth_token(self, token: str):
-        self.session.headers["Authorization"] = f"Bearer {token}"
+        self.headers["Authorization"] = f"Bearer {token}"
 
-    def _handle_response(self, response: requests.Response) -> Dict[str, Any]:
+    async def _handle_response(self, response: aiohttp.ClientResponse) -> Dict[str, Any]:
         try:
             response.raise_for_status()
-            return response.json()
-        except RequestException as e:
-            # Log the error here if needed
-            raise APIError(str(e), response.status_code)
+            return await response.json()
+        except ClientResponseError as e:
+            print(e)
+            raise APIError(str(e), e.status)
 
-    def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        url = f"{self.base_url}/{endpoint}"
-        try:
-            response = self.session.get(url, params=params, timeout=self.timeout)
-            return self._handle_response(response)
-        except RequestException as e:
-            raise APIError(f"GET request failed: {str(e)}")
+    def _prepare_data(self, data: Union[Dict[str, Any], BaseModel]) -> Dict[str, Any]:
+        if isinstance(data, BaseModel):
+            return data.model_dump()
+        return data
 
-    def post(self, endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         url = f"{self.base_url}/{endpoint}"
-        try:
-            response = self.session.post(url, json=data, timeout=self.timeout)
-            return self._handle_response(response)
-        except RequestException as e:
-            raise APIError(f"POST request failed: {str(e)}")
+        async with self.session.get(url, params=params) as response:
+            return await self._handle_response(response)
 
-    def put(self, endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def post(self, endpoint: str, data: Union[Dict[str, Any], BaseModel]) -> Dict[str, Any]:
         url = f"{self.base_url}/{endpoint}"
-        try:
-            response = self.session.put(url, json=data, timeout=self.timeout)
-            return self._handle_response(response)
-        except RequestException as e:
-            raise APIError(f"PUT request failed: {str(e)}")
+        prepared_data = self._prepare_data(data)
+        async with self.session.post(url, json=prepared_data) as response:
+            return await self._handle_response(response)
 
-    def delete(self, endpoint: str) -> Dict[str, Any]:
+    async def put(self, endpoint: str, data: Union[Dict[str, Any], BaseModel]) -> Dict[str, Any]:
         url = f"{self.base_url}/{endpoint}"
-        try:
-            response = self.session.delete(url, timeout=self.timeout)
-            return self._handle_response(response)
-        except RequestException as e:
-            raise APIError(f"DELETE request failed: {str(e)}")
+        prepared_data = self._prepare_data(data)
+        async with self.session.put(url, json=prepared_data) as response:
+            return await self._handle_response(response)
+
+    async def delete(self, endpoint: str) -> Dict[str, Any]:
+        url = f"{self.base_url}/{endpoint}"
+        async with self.session.delete(url) as response:
+            return await self._handle_response(response)
 
 class APIError(Exception):
     def __init__(self, message: str, status_code: Optional[int] = None):
@@ -62,6 +143,4 @@ class APIError(Exception):
         self.status_code = status_code
         super().__init__(self.message)
 
-
-def get_http_client() -> HTTPClient:
-    return HTTPClient()
+http_client = HTTPClient()

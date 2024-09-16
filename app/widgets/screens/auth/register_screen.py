@@ -148,12 +148,20 @@
 
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QLineEdit, QPushButton
 from PyQt5.QtCore import Qt
-from .styles.styles import get_screen_styles, get_main_button_styles, get_additional_buttons_styles
+from qasync import asyncSlot
+
+from app.core.users.resources.save_user_resource import SaveUserResource
+from app.core.users.usecases.register_user_usecase import RegisterUserUseCase
+from app.widgets.components.loading_button import LoadingButton
+from app.widgets.screens.auth.styles.styles import get_screen_styles, get_main_button_styles, get_additional_buttons_styles
 
 class RegisterScreen(QFrame):
-    def __init__(self):
+    def __init__(self, app_manager):
         super().__init__()
         self.initUI()
+        
+        self.app_manager = app_manager
+        self.register_user_usecase = RegisterUserUseCase(self.app_manager.local_storage)
 
     def initUI(self):
         self.setStyleSheet(get_screen_styles())
@@ -186,9 +194,9 @@ class RegisterScreen(QFrame):
         layout.addWidget(self.confirm_password_input)
 
         # Botón de registro
-        self.register_button = QPushButton("Registrarse")
+        self.register_button = LoadingButton("Registrarse")
         self.register_button.setStyleSheet(get_main_button_styles())
-        # self.register_button.clicked.connect(self.register)
+        self.register_button.clicked.connect(self.handle_register)
         layout.addWidget(self.register_button)
 
         # Botones adicionales
@@ -197,6 +205,27 @@ class RegisterScreen(QFrame):
         layout.addWidget(self.login_button)
 
         self.setLayout(layout)
+
+    @asyncSlot()
+    async def handle_register(self):
+        self.register_button.setEnabled(False)
+        self.register_button.start_loading()
+
+        save_user_res = SaveUserResource(
+            username=self.email_input.text(),
+            password=self.password_input.text()
+        )
+
+        response = await self.register_user_usecase.register_user(save_user_res)
+
+        self.register_button.setEnabled(True)
+        self.register_button.stop_loading()
+
+        if response.success:
+            self.app_manager.central_widget.setCurrentWidget(self.app_manager.home_screen)
+        else:
+            print(response.alert_error_message)
+
 
     # def register(self):
     #     email = self.email_input.text()

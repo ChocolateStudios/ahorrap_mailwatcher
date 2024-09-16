@@ -150,12 +150,20 @@
 
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QLineEdit, QPushButton
 from PyQt5.QtCore import Qt
-from .styles.styles import get_screen_styles, get_main_button_styles, get_additional_buttons_styles
+from qasync import asyncSlot
+
+from app.core.users.resources.save_user_resource import SaveUserResource
+from app.core.users.usecases.login_user_usecase import LoginUserUseCase
+from app.widgets.components.loading_button import LoadingButton
+from app.widgets.screens.auth.styles.styles import get_screen_styles, get_main_button_styles, get_additional_buttons_styles
 
 class LoginScreen(QFrame):
-    def __init__(self):
+    def __init__(self, app_manager):
         super().__init__()
         self.initUI()
+
+        self.app_manager = app_manager
+        self.login_user_usecase = LoginUserUseCase(self.app_manager.local_storage)
 
     def initUI(self):
         self.setStyleSheet(get_screen_styles())
@@ -182,8 +190,9 @@ class LoginScreen(QFrame):
         layout.addWidget(self.password_input)
 
         # Botón de inicio de sesión
-        self.login_button = QPushButton("Iniciar sesión")
+        self.login_button = LoadingButton("Iniciar sesión")
         self.login_button.setStyleSheet(get_main_button_styles())
+        self.login_button.clicked.connect(self.handle_login)
         layout.addWidget(self.login_button)
 
         # Botones adicionales
@@ -199,3 +208,23 @@ class LoginScreen(QFrame):
         layout.addLayout(additional_buttons_layout)
 
         self.setLayout(layout)
+
+    @asyncSlot()
+    async def handle_login(self):
+        self.login_button.setEnabled(False)
+        self.login_button.start_loading()
+
+        save_user_res = SaveUserResource(
+            username=self.email_input.text(),
+            password=self.password_input.text()
+        )
+
+        response = await self.login_user_usecase.login_user(save_user_res)
+
+        self.login_button.setEnabled(True)
+        self.login_button.stop_loading()
+
+        if response.success:
+            self.app_manager.central_widget.setCurrentWidget(self.app_manager.home_screen)
+        else:
+            print(response.alert_error_message)

@@ -1,78 +1,73 @@
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QPushButton, QSpacerItem, QSizePolicy
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStyle
+from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
-from qtawesome import icon
-from .styles.styles import get_styles
+
+from app.core.users.usecases.logout_user_usecase import LogoutUserUseCase
+from app.widgets.screens.main.styles.styles import get_screen_styles
+from app.assets.assets import gear_icon, logout_icon
 
 class HomeScreen(QFrame):
-    def __init__(self):
+    def __init__(self, app_manager):
         super().__init__()
         self.initUI()
+        
+        self.app_manager = app_manager
+        self.logout_user_usecase = LogoutUserUseCase(self.app_manager.local_storage)
 
     def initUI(self):
-        self.setStyleSheet(get_styles())
+        self.setStyleSheet(get_screen_styles())
 
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(20, 20, 20, 20)
 
-        # Top bar with settings button
-        top_bar = QHBoxLayout()
-        self.settings_button = QPushButton(icon('fa5s.cog'), "")
-        self.settings_button.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                border: none;
-                font-size: 24px;
-                color: #4CAF50;
-            }
-            QPushButton:hover {
-                color: #45a049;
-            }
-        """)
-        top_bar.addStretch()
-        top_bar.addWidget(self.settings_button)
+        # Título
+        title_label = QLabel("AhorrApp'e")
+        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setStyleSheet("font-size: 24px; font-weight: bold; color: #333; margin-bottom: 20px;")
+        main_layout.addWidget(title_label)
 
-        main_layout.addLayout(top_bar)
+        # Botón de sincronización
+        sync_button = QPushButton("Sincronizar")
+        sync_button.setObjectName("syncButton")
+        sync_button.clicked.connect(self.sync_data)
+        main_layout.addStretch(1)
+        main_layout.addWidget(sync_button, alignment=Qt.AlignCenter)
+        main_layout.addStretch(1)
 
-        # Spacer to push content to the center
-        main_layout.addStretch()
+        # Botones de ajustes y cerrar sesión
+        bottom_layout = QHBoxLayout()
+        
+        settings_button = QPushButton()
+        settings_button.setIcon(QIcon(gear_icon))
+        settings_button.setObjectName("iconButton")
+        settings_button.setToolTip("Ajustes")
+        settings_button.clicked.connect(self.open_settings)
+        
+        logout_button = QPushButton()
+        logout_button.setIcon(QIcon(logout_icon))
+        logout_button.setObjectName("iconButton")
+        logout_button.setToolTip("Cerrar sesión")
+        logout_button.clicked.connect(self.logout)
 
-        # Sync button
-        self.sync_button = QPushButton("Sincronizar")
-        self.sync_button.setFont(QFont("Segoe UI", 18, QFont.Bold))
-        self.sync_button.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border-radius: 25px;
-                padding: 20px 40px;
-            }
-            QPushButton:hover {
-                background-color: #45a049;
-            }
-        """)
-        main_layout.addWidget(self.sync_button, alignment=Qt.AlignCenter)
+        bottom_layout.addWidget(settings_button)
+        bottom_layout.addStretch(1)
+        bottom_layout.addWidget(logout_button)
 
-        # Spacer to push content to the center
-        main_layout.addStretch()
-
-        # Bottom bar with logout button
-        bottom_bar = QHBoxLayout()
-        self.logout_button = QPushButton(icon('fa5s.sign-out-alt'), "")
-        self.logout_button.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                border: none;
-                font-size: 24px;
-                color: #FF5722;
-            }
-            QPushButton:hover {
-                color: #E64A19;
-            }
-        """)
-        bottom_bar.addWidget(self.logout_button)
-        bottom_bar.addStretch()
-
-        main_layout.addLayout(bottom_bar)
+        main_layout.addLayout(bottom_layout)
 
         self.setLayout(main_layout)
+
+    def sync_data(self):
+        print("Sincronizando datos...")
+        # Aquí iría la lógica de sincronización
+
+    def open_settings(self):
+        print("Abriendo ajustes...")
+        # Aquí iría la lógica para abrir la pantalla de ajustes
+
+    def logout(self):
+        print("Cerrando sesión...")
+        # Aquí iría la lógica para cerrar sesión
+        self.logout_user_usecase.logout_user()
+        self.app_manager.central_widget.setCurrentWidget(self.app_manager.login_screen)
+
