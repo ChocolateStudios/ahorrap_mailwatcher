@@ -27,3 +27,7 @@ class UsersApi:
     async def update_user_password(data: SaveUserResource) -> UserResource:
         async with http_client:
             return await http_client.put(f'{UsersApi.BASE_URL}/update/password', data)
+
+    @staticmethod
+    def set_auth_token(token: str) -> bool:
+        http_client.set_auth_token(token)

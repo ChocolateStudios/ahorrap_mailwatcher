@@ -18,6 +18,7 @@ class LoginUserUseCase:
                 )
 
             self.local_storage.setItem('token', resource['token'])
+            UsersApi.set_auth_token(resource['token'])
 
             print('User logged:', resource)
 

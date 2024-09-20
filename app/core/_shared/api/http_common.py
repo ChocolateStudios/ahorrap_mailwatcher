@@ -81,6 +81,8 @@ import aiohttp
 from aiohttp import ClientResponseError
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, Union
+from datetime import datetime
+
 from app.configs.settings import settings
 
 class HTTPClient:
@@ -111,8 +113,25 @@ class HTTPClient:
             raise APIError(str(e), e.status)
 
     def _prepare_data(self, data: Union[Dict[str, Any], BaseModel]) -> Dict[str, Any]:
+        def serialize_item(item):
+            if isinstance(item, BaseModel):
+                serialized_data = item.model_dump(by_alias=True)
+                
+                for key, value in serialized_data.items():
+                    if isinstance(value, datetime):
+                        serialized_data[key] = value.isoformat()  # Convertir datetime a ISO 8601
+                return serialized_data
+            return item
+
+        # Si es una instancia de BaseModel, serializa con model_dump()
         if isinstance(data, BaseModel):
-            return data.model_dump()
+            return serialize_item(data)
+
+        # Si es una lista de objetos BaseModel, serializa cada uno
+        if isinstance(data, list) and all(isinstance(item, BaseModel) for item in data):
+            return [serialize_item(item) for item in data]
+        
+        # Si es un diccionario, lo retorna tal cual
         return data
 
     async def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -123,6 +142,7 @@ class HTTPClient:
     async def post(self, endpoint: str, data: Union[Dict[str, Any], BaseModel]) -> Dict[str, Any]:
         url = f"{self.base_url}/{endpoint}"
         prepared_data = self._prepare_data(data)
+        print(prepared_data)
         async with self.session.post(url, json=prepared_data) as response:
             return await self._handle_response(response)
 

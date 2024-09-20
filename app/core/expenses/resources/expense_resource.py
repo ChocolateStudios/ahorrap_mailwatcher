@@ -1,9 +1,9 @@
 from pydantic import BaseModel
-import datetime
+from datetime import datetime
 
 class ExpenseResource(BaseModel):
     id: int
     description: str
-    amount: str
-    datetime: datetime
+    amount: float
+    date_time: datetime
     profile_id: int

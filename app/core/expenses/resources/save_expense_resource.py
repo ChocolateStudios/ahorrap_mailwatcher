@@ -1,10 +1,8 @@
-from pydantic import BaseModel
-import datetime
+from datetime import datetime
 
-class SaveExpenseResource(BaseModel):
+from app.core._shared.resources.base_resource import BaseResource
+
+class SaveExpenseResource(BaseResource):
     description: str
-    amount: str
-    datetime: datetime
-
-    class Config:
-        extra = 'forbid'
+    amount: float
+    date_time: datetime

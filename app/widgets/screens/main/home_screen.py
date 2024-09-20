@@ -1,7 +1,10 @@
+import asyncio
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStyle
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
+from qasync import asyncSlot
 
+from app.core.expenses.usecases.synchronize_expenses_usecase import SynchronizeExpensesUseCase
 from app.core.users.usecases.logout_user_usecase import LogoutUserUseCase
 from app.widgets.screens.main.styles.styles import get_screen_styles
 from app.assets.assets import gear_icon, logout_icon
@@ -12,6 +15,7 @@ class HomeScreen(QFrame):
         self.initUI()
         
         self.app_manager = app_manager
+        self.synchronize_expenses_usecase = SynchronizeExpensesUseCase()
         self.logout_user_usecase = LogoutUserUseCase(self.app_manager.local_storage)
 
     def initUI(self):
@@ -57,9 +61,12 @@ class HomeScreen(QFrame):
 
         self.setLayout(main_layout)
 
-    def sync_data(self):
+    @asyncSlot()
+    async def sync_data(self):
         print("Sincronizando datos...")
-        # Aquí iría la lógica de sincronización
+        # await self.synchronize_expenses_usecase.synchronize_expenses()
+        
+        asyncio.create_task(self.synchronize_expenses_usecase.synchronize_expenses())
 
     def open_settings(self):
         print("Abriendo ajustes...")
